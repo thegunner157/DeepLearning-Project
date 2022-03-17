@@ -26,51 +26,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Project hooks."""
-from typing import Any, Dict, Iterable, Optional
+"""Example code for the nodes in the example pipeline. This code is meant
+just for illustrating basic Kedro features.
 
-from kedro.config import ConfigLoader
-from kedro.framework.hooks import hook_impl
-from kedro.io import DataCatalog
-from kedro.pipeline import Pipeline
-from kedro.versioning import Journal
+Delete this when you start working on your own Kedro project.
+"""
 
+from kedro.pipeline import Pipeline, node
 
-from task1.pipelines import data_science as ds
+from .nodes import report_accuracy, train_model, download_data, augment, test_model
 
 
-class ProjectHooks:
-    @hook_impl
-    def register_pipelines(self) -> Dict[str, Pipeline]:
-        """Register the project's pipeline.
-
-        Returns:
-            A mapping from a pipeline name to a ``Pipeline`` object.
-
-        """
-        data_science_pipeline = ds.create_pipeline()
-
-        return {
-            "ds": data_science_pipeline,
-            "__default__": data_science_pipeline,
-        }
-
-    @hook_impl
-    def register_config_loader(self, conf_paths: Iterable[str]) -> ConfigLoader:
-        return ConfigLoader(conf_paths)
-
-    @hook_impl
-    def register_catalog(
-        self,
-        catalog: Optional[Dict[str, Dict[str, Any]]],
-        credentials: Dict[str, Dict[str, Any]],
-        load_versions: Dict[str, str],
-        save_version: str,
-        journal: Journal,
-    ) -> DataCatalog:
-        return DataCatalog.from_config(
-            catalog, credentials, load_versions, save_version, journal
-        )
-
-
-project_hooks = ProjectHooks()
+def create_pipeline(**kwargs):
+    return Pipeline(
+        [
+            node(
+                download_data,
+                [],
+                ["train_dataset", "test_dataset"],
+            ),
+            node(
+                augment,
+                "train_dataset",
+                "train_dataset_augmented",
+            ),
+            node(
+                train_model,
+                ["train_dataset_augmented", "parameters"],
+                "example_model",
+            ),
+            node(
+                test_model,
+                dict(model="example_model", test_dataset="test_dataset"),
+                None,
+            ),        
+#            node(
+#                predict,
+#                dict(model="example_model", test_x="example_test_x"),
+#                "example_predictions",
+#            ),
+            #node(report_accuracy, ["example_predictions", "example_test_y"], None),
+        ]
+    )
