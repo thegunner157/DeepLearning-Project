@@ -1,0 +1,6 @@
+context_path: task1.run.ProjectContext
+project_name: "task1"
+project_version: "0.16.5"
+package_name: "task1"
+hooks:
+  - task1.hooks.project_hooks
