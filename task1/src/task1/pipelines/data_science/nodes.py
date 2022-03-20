@@ -47,26 +47,35 @@ from tensorflow.keras.utils import to_categorical
 
 
 
-def download_data() -> tuple:
+def download_data() -> tuple((np.ndarray, np.ndarray, np.ndarray, np.ndarray)):
     """Node downloading dataset.
     """
-    return datasets.cifar100.load_data(label_mode="fine")
+    (train_images1, train_labels), (test_images1, test_labels) = datasets.cifar100.load_data()
+    train_images, test_images = train_images1 / 255.0, test_images1 / 255.0
 
+    df_train = pd.DataFrame(list(zip(train_images, train_labels)), columns =['Image', 'label'])
+    df_test = pd.DataFrame(list(zip(test_images, test_labels)), columns =['Image', 'label'])     
+    return train_images, train_labels, test_images, test_labels
 
-def augment(dataset) -> tuple:
+def augment(train_images, train_labels) -> tuple((np.ndarray, np.ndarray)):
     """Data augmentation
     """
     #TODO
-    return dataset
+    train_images_augmented, train_labels_augmented = train_images, train_labels
+    return train_images_augmented, train_labels_augmented
 
-def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
+def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.ndarray, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
     """Node for training a simple multi-class logistic regression model. The
     number of training iterations as well as the learning rate are taken from
     conf/project/parameters.yml. All of the data as well as the parameters
     will be provided to this function at the time of execution.
     """
-    x_train,y_train = train_dataset
-    X = tf.constant(x_train/255, dtype = tf.float16)
+    x_train = train_images_augmented
+    y_train = train_labels_augmented
+
+
+
+    X = tf.constant(x_train, dtype = tf.float16)
     Y = to_categorical(y_train)
     resnet_model = models.Sequential()
 
@@ -93,10 +102,10 @@ def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.mo
     return resnet_model
 
 
-def test_model(model: tf.keras.models.Sequential, test_dataset: tuple) -> None:
+def test_model(model: tf.keras.models.Sequential, test_images: np.ndarray, test_labels: np.ndarray) -> None:
     """Node for making predictions given a pre-trained model and a test set.
     """
-    x_test, y_test = test_dataset
+    x_test, y_test = test_images, test_labels
 
     X = tf.constant(x_test/255, dtype = tf.float16)
     Y = to_categorical(y_test)

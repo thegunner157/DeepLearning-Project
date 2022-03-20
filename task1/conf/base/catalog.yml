@@ -48,3 +48,30 @@
 #  filepath: data/01_raw/iris.csv
 
 
+train_images:
+  type: pickle.PickleDataSet
+  filepath: data/01_raw/train_dataset.pkl
+train_labels:
+  type: pickle.PickleDataSet
+  filepath: data/01_raw/train_labels.pkl
+
+
+train_images_augmented:
+  type: pickle.PickleDataSet
+  filepath: data/02_intermediate/train_images_augmented.pkl
+train_labels_augmented:
+  type: pickle.PickleDataSet
+  filepath: data/02_intermediate/train_labels_augmented.pkl
+
+test_images:
+  type: pickle.PickleDataSet
+  filepath: data/02_intermediate/test_images.pkl
+test_labels:
+  type: pickle.PickleDataSet
+  filepath: data/02_intermediate/test_labels.pkl
+
+
+#test_dataset:
+#  type: pandas.CSVDataSet
+#  filepath: data/01_raw/test_dataset.csv
+
