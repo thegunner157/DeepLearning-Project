@@ -1,5 +1,5 @@
 """Project settings."""
-from cifarproject.hooks import ProjectHooks
+from task1.hooks import ProjectHooks
 
 # Instantiate and list your project hooks here
 HOOKS = (ProjectHooks(),)

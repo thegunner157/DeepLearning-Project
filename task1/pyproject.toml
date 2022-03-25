@@ -1,6 +1,6 @@
 [tool.kedro]
-package_name = "cifarproject"
-project_name = "CifarProject"
+package_name = "task1"
+project_name = "Task1"
 project_version = "0.17.7"
 
 [tool.isort]
