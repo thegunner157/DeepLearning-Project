@@ -53,11 +53,22 @@ def download_data() -> tuple:
     return datasets.cifar100.load_data(label_mode="fine")
 
 
-def augment(dataset) -> tuple:
+def augment(train_dataset) -> tuple:
     """Data augmentation
     """
-    #TODO
-    return dataset
+    x_train, y_train = train_dataset
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        horizontal_flip=True,
+        width_shift_range=0.1,
+        height_shift_range=0.1
+        #zoom_range=0.3
+        )
+    datagen.fit(x_train)
+
+    x_train_augm, y_train_augm = datagen.flow(x_train, y_train, batch_size=16)
+    
+    return (x_train_augm, y_train_augm)
 
 def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
     """Node for training a simple multi-class logistic regression model. The
@@ -65,7 +76,8 @@ def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.mo
     conf/project/parameters.yml. All of the data as well as the parameters
     will be provided to this function at the time of execution.
     """
-    x_train,y_train = train_dataset
+    (x_train,y_train) = augment(train_dataset)
+
     X = tf.constant(x_train/255, dtype = tf.float16)
     Y = to_categorical(y_train)
     resnet_model = models.Sequential()
