@@ -41,24 +41,19 @@ def create_pipeline(**kwargs):
     return Pipeline(
         [
             node(
-                download_data,
-                [],
-                ["train_images", "train_labels", "test_images", "test_labels"],
-            ),
-            node(
-                augment,
-                ["train_images", "train_labels"] ,
-                ["train_images_augmented", "train_labels_augmented"]
+                func=download_data,
+                inputs=[],
+                outputs=["train_dataset", "test_dataset"],
             ),
             node(
                 train_model,
-                ["train_images_augmented","train_labels_augmented", "parameters"],
+                ["train_dataset", "parameters"],
                 "example_model",
             ),
             node(
-                test_model,
-                dict(model="example_model", test_images="test_images", test_labels="test_labels"),
-                None,
+                func=test_model,
+                inputs=dict(model="example_model", test_dataset="test_dataset"),
+                outputs=None,
             ),        
             #node(report_accuracy, ["example_predictions", "example_test_y"], None),
         ]

@@ -44,6 +44,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, Input, Model, models
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 
@@ -53,16 +54,25 @@ def download_data() -> tuple((np.ndarray, np.ndarray, np.ndarray, np.ndarray)):
     (train_images1, train_labels), (test_images1, test_labels) = datasets.cifar100.load_data()
     train_images, test_images = train_images1 / 255.0, test_images1 / 255.0
 
-    df_train = pd.DataFrame(list(zip(train_images, train_labels)), columns =['Image', 'label'])
-    df_test = pd.DataFrame(list(zip(test_images, test_labels)), columns =['Image', 'label'])     
-    return train_images, train_labels, test_images, test_labels
+    return (train_images, train_labels), (test_images, test_labels)
 
-def augment(train_images, train_labels) -> tuple((np.ndarray, np.ndarray)):
+
+def augment(train_dataset) -> tuple:
     """Data augmentation
     """
-    #TODO
-    train_images_augmented, train_labels_augmented = train_images, train_labels
-    return train_images_augmented, train_labels_augmented
+    x_train, y_train = train_dataset
+    y_train = to_categorical(y_train)
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        horizontal_flip=True,
+        width_shift_range=0.1,
+        height_shift_range=0.1
+        #zoom_range=0.3
+        )
+    datagen.fit(x_train)
+
+    return datagen.flow(x_train, y_train, batch_size=16)
+
 
 def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.ndarray, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
     """Node for training a simple multi-class logistic regression model. The
@@ -70,17 +80,11 @@ def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.nd
     conf/project/parameters.yml. All of the data as well as the parameters
     will be provided to this function at the time of execution.
     """
-    x_train = train_images_augmented
-    y_train = train_labels_augmented
-
-
-
-    X = tf.constant(x_train, dtype = tf.float16)
-    Y = to_categorical(y_train)
+    augmented = augment(train_dataset)
     resnet_model = models.Sequential()
 
     pretrained_model= tf.keras.applications.ResNet50(include_top=False,
-                    input_shape=X.shape[1:],
+                    input_shape=augmented[0][0].shape[1:],
                     pooling='avg',classes=100,
                     weights='imagenet')
     for layer in pretrained_model.layers:
@@ -97,7 +101,7 @@ def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.nd
 
     resnet_model.compile(optimizer=Adam(0.001),loss='categorical_crossentropy',metrics=['accuracy'])
     
-    resnet_model.fit(X, Y, batch_size=256, epochs=1, validation_split = 0.1)
+    resnet_model.fit(augmented, epochs=1)
 
     return resnet_model
 
@@ -107,7 +111,7 @@ def test_model(model: tf.keras.models.Sequential, test_images: np.ndarray, test_
     """
     x_test, y_test = test_images, test_labels
 
-    X = tf.constant(x_test/255, dtype = tf.float16)
+    X = tf.constant(x_test, dtype = tf.float16)
     Y = to_categorical(y_test)
 
     model.evaluate(X,Y)
