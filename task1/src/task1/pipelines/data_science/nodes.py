@@ -46,6 +46,8 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+import matplotlib.pyplot as plt
+
 
 
 def download_data() -> tuple((np.ndarray, np.ndarray, np.ndarray, np.ndarray)):
@@ -55,6 +57,19 @@ def download_data() -> tuple((np.ndarray, np.ndarray, np.ndarray, np.ndarray)):
     train_images, test_images = train_images1 / 255.0, test_images1 / 255.0
 
     return (train_images, train_labels), (test_images, test_labels)
+
+def show_images(train_dataset):
+    x_train=train_dataset[0]
+    fig = plt.figure(figsize=(18, 4))
+    ax1 = fig.add_subplot(141)
+    ax1.imshow(x_train[0])
+    ax2 = fig.add_subplot(142, sharey=ax1)
+    ax2.imshow(x_train[1])
+    ax3 = fig.add_subplot(143, sharey=ax1)
+    ax3.imshow(x_train[2])
+    ax4 = fig.add_subplot(144, sharey=ax1)
+    ax4.imshow(x_train[3])
+    return fig
 
 
 def augment(train_dataset) -> tuple:
@@ -74,7 +89,7 @@ def augment(train_dataset) -> tuple:
     return datagen.flow(x_train, y_train, batch_size=16)
 
 
-def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.ndarray, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
+def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
     """Node for training a simple multi-class logistic regression model. The
     number of training iterations as well as the learning rate are taken from
     conf/project/parameters.yml. All of the data as well as the parameters
@@ -106,10 +121,10 @@ def train_model(train_images_augmented: np.ndarray,train_labels_augmented: np.nd
     return resnet_model
 
 
-def test_model(model: tf.keras.models.Sequential, test_images: np.ndarray, test_labels: np.ndarray) -> None:
+def test_model(model: tf.keras.models.Sequential, test_dataset: tuple) -> None:
     """Node for making predictions given a pre-trained model and a test set.
     """
-    x_test, y_test = test_images, test_labels
+    x_test, y_test = test_dataset
 
     X = tf.constant(x_test, dtype = tf.float16)
     Y = to_categorical(y_test)

@@ -56,12 +56,12 @@ train_labels:
   filepath: data/01_raw/train_labels.pkl
 
 
-train_images_augmented:
-  type: pickle.PickleDataSet
-  filepath: data/02_intermediate/train_images_augmented.pkl
-train_labels_augmented:
-  type: pickle.PickleDataSet
-  filepath: data/02_intermediate/train_labels_augmented.pkl
+#train_images_augmented:
+#  type: pickle.PickleDataSet
+#  filepath: data/02_intermediate/train_images_augmented.pkl
+#train_labels_augmented:
+#  type: pickle.PickleDataSet
+#  filepath: data/02_intermediate/train_labels_augmented.pkl
 
 test_images:
   type: pickle.PickleDataSet
@@ -69,6 +69,11 @@ test_images:
 test_labels:
   type: pickle.PickleDataSet
   filepath: data/02_intermediate/test_labels.pkl
+
+
+cifar_chart:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/example_images.png
 
 
 #test_dataset:

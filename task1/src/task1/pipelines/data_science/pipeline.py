@@ -34,7 +34,7 @@ Delete this when you start working on your own Kedro project.
 
 from kedro.pipeline import Pipeline, node
 
-from .nodes import report_accuracy, train_model, download_data, augment, test_model
+from .nodes import report_accuracy, train_model, download_data, augment, test_model, show_images
 
 
 def create_pipeline(**kwargs):
@@ -44,6 +44,11 @@ def create_pipeline(**kwargs):
                 func=download_data,
                 inputs=[],
                 outputs=["train_dataset", "test_dataset"],
+            ),
+            node(
+                func=show_images,
+                inputs="train_dataset",
+                outputs="cifar_chart",
             ),
             node(
                 train_model,
