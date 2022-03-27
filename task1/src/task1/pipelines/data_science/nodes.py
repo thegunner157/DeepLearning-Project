@@ -44,19 +44,24 @@ import tensorflow as tf
 from tensorflow.keras import layers, Input, Model, models
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 
 def download_data() -> tuple:
     """Node downloading dataset.
     """
-    return datasets.cifar100.load_data(label_mode="fine")
+    (train_images1, train_labels), (test_images1, test_labels) = datasets.cifar100.load_data()
+    train_images, test_images = train_images1 / 255.0, test_images1 / 255.0
+
+    return (train_images, train_labels), (test_images, test_labels)
 
 
 def augment(train_dataset) -> tuple:
     """Data augmentation
     """
     x_train, y_train = train_dataset
+    y_train = to_categorical(y_train)
     datagen = ImageDataGenerator(
         rotation_range=15,
         horizontal_flip=True,
@@ -66,9 +71,8 @@ def augment(train_dataset) -> tuple:
         )
     datagen.fit(x_train)
 
-    x_train_augm, y_train_augm = datagen.flow(x_train, y_train, batch_size=16)
-    
-    return (x_train_augm, y_train_augm)
+    return datagen.flow(x_train, y_train, batch_size=16)
+
 
 def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.models.Sequential:
     """Node for training a simple multi-class logistic regression model. The
@@ -76,14 +80,11 @@ def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.mo
     conf/project/parameters.yml. All of the data as well as the parameters
     will be provided to this function at the time of execution.
     """
-    (x_train,y_train) = augment(train_dataset)
-
-    X = tf.constant(x_train/255, dtype = tf.float16)
-    Y = to_categorical(y_train)
+    augmented = augment(train_dataset)
     resnet_model = models.Sequential()
 
     pretrained_model= tf.keras.applications.ResNet50(include_top=False,
-                    input_shape=X.shape[1:],
+                    input_shape=augmented[0][0].shape[1:],
                     pooling='avg',classes=100,
                     weights='imagenet')
     for layer in pretrained_model.layers:
@@ -100,7 +101,7 @@ def train_model(train_dataset: tuple, parameters: Dict[str, Any]) -> tf.keras.mo
 
     resnet_model.compile(optimizer=Adam(0.001),loss='categorical_crossentropy',metrics=['accuracy'])
     
-    resnet_model.fit(X, Y, batch_size=256, epochs=1, validation_split = 0.1)
+    resnet_model.fit(augmented, epochs=1)
 
     return resnet_model
 
@@ -110,7 +111,7 @@ def test_model(model: tf.keras.models.Sequential, test_dataset: tuple) -> None:
     """
     x_test, y_test = test_dataset
 
-    X = tf.constant(x_test/255, dtype = tf.float16)
+    X = tf.constant(x_test, dtype = tf.float16)
     Y = to_categorical(y_test)
 
     model.evaluate(X,Y)

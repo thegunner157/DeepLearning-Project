@@ -46,13 +46,8 @@ def create_pipeline(**kwargs):
                 outputs=["train_dataset", "test_dataset"],
             ),
             node(
-                func=augment,
-                inputs="train_dataset",
-                outputs="train_dataset_augmented",
-            ),
-            node(
                 train_model,
-                ["train_dataset_augmented", "params:"],
+                ["train_dataset", "parameters"],
                 "example_model",
             ),
             node(
